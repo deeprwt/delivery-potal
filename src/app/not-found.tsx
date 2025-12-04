@@ -3,22 +3,10 @@
 import GridShape from "@/components/common/GridShape";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import React from "react";
 
 export default function NotFound() {
-  const pathname = usePathname();
-  const router = useRouter();
 
-  // Redirect ONLY if user is on "/"
-  useEffect(() => {
-    if (pathname === "/") {
-      router.replace("/dashboard");
-    }
-  }, [pathname, router]);
-
-  // If pathname is "/", do not show the page (it will redirect)
-  if (pathname === "/") return null;
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen p-6 overflow-hidden z-1">
