@@ -2,30 +2,42 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  const authCookie = request.cookies.get("authUser");
+  const pathname = request.nextUrl.pathname;
 
-  // Allow login page
+  const authUser = request.cookies.get("authUser")?.value;
+  const role = request.cookies.get("userRole")?.value;
+
+  // Public page
   if (pathname.startsWith("/signin")) {
     return NextResponse.next();
   }
 
-  // Block all protected routes
-  if (!authCookie) {
-    console.log("❌ Not logged in — redirecting");
-    const signinUrl = new URL("/signin", request.url);
-    return NextResponse.redirect(signinUrl);
+  // Not logged in
+  if (!authUser) {
+    return NextResponse.redirect(new URL("/signin", request.url));
   }
 
-  console.log("✅ Logged in — Access granted");
+  // ADMIN PROTECTED ROUTES
+  if (pathname.startsWith("/admin")) {
+    if (role !== "admin") {
+      return NextResponse.redirect(new URL("/rider/dashboard", request.url));
+    }
+  }
+
+  // RIDER PROTECTED ROUTES
+  if (pathname.startsWith("/rider")) {
+    if (role !== "rider" && role !== "admin") {
+      return NextResponse.redirect(new URL("/signin", request.url));
+    }
+  }
+
   return NextResponse.next();
 }
 
-// Protect routes
 export const config = {
   matcher: [
-    "/(admin)/:path*",
-    "/dashboard/:path*",
+    "/admin/:path*",
     "/rider/:path*",
+    "/dashboard/:path*", // optional
   ],
 };
