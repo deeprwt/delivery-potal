@@ -10,6 +10,7 @@ export interface UserData {
   photoURL?: string;
   role?: "admin" | "rider";
   createdAt?: Date;
+  accountStatus?: "pending" | "active" | "inactive";
 }
 
 // 🔥 Auto-create user document if first login

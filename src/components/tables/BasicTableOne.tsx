@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import {
   Table,
   TableBody,
@@ -9,212 +11,143 @@ import {
 
 import Badge from "../ui/badge/Badge";
 import Image from "next/image";
+import {
+  RiderWithStats,
+  getAllRidersWithStats,
+  toggleRiderStatus,
+} from "@/lib/riderService";
 
-interface Order {
-  id: number;
-  user: {
-    image: string;
-    name: string;
-    role: string;
-  };
-  projectName: string;
-  team: {
-    images: string[];
-  };
-  status: string;
-  budget: string;
-}
-
-// Define the table data using the interface
-const tableData: Order[] = [
-  {
-    id: 1,
-    user: {
-      image: "/images/user/user-17.jpg",
-      name: "Lindsey Curtis",
-      role: "Web Designer",
-    },
-    projectName: "Agency Website",
-    team: {
-      images: [
-        "/images/user/user-22.jpg",
-        "/images/user/user-23.jpg",
-        "/images/user/user-24.jpg",
-      ],
-    },
-    budget: "3.9K",
-    status: "Active",
-  },
-  {
-    id: 2,
-    user: {
-      image: "/images/user/user-18.jpg",
-      name: "Kaiya George",
-      role: "Project Manager",
-    },
-    projectName: "Technology",
-    team: {
-      images: ["/images/user/user-25.jpg", "/images/user/user-26.jpg"],
-    },
-    budget: "24.9K",
-    status: "Pending",
-  },
-  {
-    id: 3,
-    user: {
-      image: "/images/user/user-17.jpg",
-      name: "Zain Geidt",
-      role: "Content Writing",
-    },
-    projectName: "Blog Writing",
-    team: {
-      images: ["/images/user/user-27.jpg"],
-    },
-    budget: "12.7K",
-    status: "Active",
-  },
-  {
-    id: 4,
-    user: {
-      image: "/images/user/user-20.jpg",
-      name: "Abram Schleifer",
-      role: "Digital Marketer",
-    },
-    projectName: "Social Media",
-    team: {
-      images: [
-        "/images/user/user-28.jpg",
-        "/images/user/user-29.jpg",
-        "/images/user/user-30.jpg",
-      ],
-    },
-    budget: "2.8K",
-    status: "Cancel",
-  },
-  {
-    id: 5,
-    user: {
-      image: "/images/user/user-21.jpg",
-      name: "Carla George",
-      role: "Front-end Developer",
-    },
-    projectName: "Website",
-    team: {
-      images: [
-        "/images/user/user-31.jpg",
-        "/images/user/user-32.jpg",
-        "/images/user/user-33.jpg",
-      ],
-    },
-    budget: "4.5K",
-    status: "Active",
-  },
-];
+import { useRouter } from "next/navigation";
 
 export default function BasicTableOne() {
+  const [riders, setRiders] = useState<RiderWithStats[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const router = useRouter();
+
+  const loadData = async () => {
+    const data = await getAllRidersWithStats();
+    setRiders(data);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  // ----------------- SKELETON --------------------
+  if (loading) {
+    return (
+      <div className="p-5 border rounded-xl animate-pulse border-gray-200 dark:border-white/[0.1]">
+        <div className="h-5 w-48 bg-gray-300 dark:bg-gray-700 rounded mb-4"></div>
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="h-14 w-full bg-gray-200 dark:bg-gray-800 rounded mb-2"></div>
+        ))}
+      </div>
+    );
+  }
+
+  // ----------------- UI TABLE --------------------
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
       <div className="max-w-full overflow-x-auto">
         <div className="min-w-[1102px]">
           <Table>
-            {/* Table Header */}
             <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
               <TableRow>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  User
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Project Name
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Team
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Status
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Budget
-                </TableCell>
+                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Rider</TableCell>
+                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Phone</TableCell>
+                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Account Status</TableCell>
+                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Delivered</TableCell>
+                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Picked</TableCell>
+                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Active Orders</TableCell>
+                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Actions</TableCell>
               </TableRow>
             </TableHeader>
 
-            {/* Table Body */}
-            <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-              {tableData.map((order) => (
-                <TableRow key={order.id}>
-                  <TableCell className="px-5 py-4 sm:px-6 text-start">
+            <TableBody>
+              {riders.map((rider) => (
+                <TableRow key={rider.id}>
+                  
+                  {/* Rider Info */}
+                  <TableCell className="px-5 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 overflow-hidden rounded-full">
+                      <div className="w-10 h-10 rounded-full overflow-hidden">
                         <Image
                           width={40}
                           height={40}
-                          src={order.user.image}
-                          alt={order.user.name}
+                          src={rider.photoURL || "/images/user/owner.jpg"}
+                          alt="rider"
                         />
                       </div>
                       <div>
-                        <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                          {order.user.name}
-                        </span>
-                        <span className="block text-gray-500 text-theme-xs dark:text-gray-400">
-                          {order.user.role}
-                        </span>
+                        <p className="font-medium">
+                          {rider.firstName} {rider.lastName}
+                        </p>
+                        <p className="text-xs text-gray-500">Rider</p>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                    {order.projectName}
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                    <div className="flex -space-x-2">
-                      {order.team.images.map((teamImage, index) => (
-                        <div
-                          key={index}
-                          className="w-6 h-6 overflow-hidden border-2 border-white rounded-full dark:border-gray-900"
-                        >
-                          <Image
-                            width={24}
-                            height={24}
-                            src={teamImage}
-                            alt={`Team member ${index + 1}`}
-                            className="w-full"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+
+                  <TableCell className="px-4 py-3">{rider.phone || "N/A"}</TableCell>
+
+                  <TableCell className="px-4 py-3">
                     <Badge
                       size="sm"
                       color={
-                        order.status === "Active"
+                        rider.accountStatus === "active"
                           ? "success"
-                          : order.status === "Pending"
-                          ? "warning"
-                          : "error"
+                          : rider.accountStatus === "inactive"
+                          ? "error"
+                          : "warning"
                       }
                     >
-                      {order.status}
+                      {rider.accountStatus}
                     </Badge>
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                    {order.budget}
+
+                  <TableCell className="px-4 py-3">{rider.delivered}</TableCell>
+                  <TableCell className="px-4 py-3">{rider.picked}</TableCell>
+                  <TableCell className="px-4 py-3">{rider.activeOrders}</TableCell>
+
+                  {/* ---------------- ACTION BUTTONS ---------------- */}
+                  <TableCell className="px-4 py-3 space-x-2">
+
+                    {/* VIEW DETAILS BUTTON */}
+                    <button
+                      onClick={() => router.push(`/dashboard/rider/${rider.id}`)}
+                      className="flex w-full items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200 lg:inline-flex lg:w-auto"
+                    >
+                      View Details
+                    </button>
+
+                    {/* ACTIVATE BUTTON */}
+                    {rider.accountStatus !== "active" && (
+                      <button
+                        onClick={async () => {
+                          await toggleRiderStatus(rider.id, "active");
+                          loadData();
+                        }}
+                        className="px-3 py-1 bg-green-600 text-white rounded text-xs"
+                      >
+                        Activate
+                      </button>
+                    )}
+
+                    {/* DEACTIVATE BUTTON */}
+                    {rider.accountStatus === "active" && (
+                      <button
+                        onClick={async () => {
+                          await toggleRiderStatus(rider.id, "inactive");
+                          loadData();
+                        }}
+                        className="flex w-full items-center justify-center gap-2 rounded-full border border-gray-300 bg-red-600 px-4 py-3 text-sm font-medium text-white-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200 lg:inline-flex lg:w-auto"
+                      >
+                        Deactivate
+                      </button>
+                    )}
                   </TableCell>
+
                 </TableRow>
               ))}
             </TableBody>
