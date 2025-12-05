@@ -19,6 +19,7 @@ import {
 } from "../icons/index";
 import SidebarWidget from "./SidebarWidget";
 
+
 type NavItem = {
   name: string;
   icon: React.ReactNode;
@@ -27,10 +28,15 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-  {
+  // {
+  //   icon: <GridIcon />,
+  //   name: "Dashboard",
+  //   subItems: [{ name: "Ecommerce", path: "/dashboard/", pro: false }],
+  // },
+    {
     icon: <GridIcon />,
     name: "Dashboard",
-    subItems: [{ name: "Ecommerce", path: "/dashboard/", pro: false }],
+    path: "/dashboard/",
   },
   {
     icon: <CalenderIcon />,
@@ -51,6 +57,11 @@ const navItems: NavItem[] = [
     icon: <UserCircleIcon />,
     name: "Orders",
     path: "/dashboard/orders",
+  },
+      {
+    icon: <UserCircleIcon />,
+    name: "POD",
+    path: "/dashboard/pod",
   },
   // {
   //   name: "Forms",

@@ -16,17 +16,27 @@ import {
 import { db } from "@/lib/firebase";
 import Pagination from "@/components/tables/Pagination";
 import OrderRow from "./OrderRow";
-import { OrderData } from "@/lib/orderService";
-import { deleteOrder, updateOrder } from "@/lib/orderService"; // <-- add update/delete service
+import { OrderData, deleteOrder, updateOrder } from "@/lib/orderService";
+
+// UI table components
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from "../ui/table";
+
+interface RiderInfo {
+  uid: string;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+}
 
 interface OrdersTableProps {
   role: "admin" | "rider";
-  riderInfo: {
-    uid: string;
-    firstName: string;
-    lastName: string;
-    phone?: string;
-  } | null;
+  riderInfo: RiderInfo | null;
 }
 
 export default function OrdersTable({ role, riderInfo }: OrdersTableProps) {
@@ -40,9 +50,7 @@ export default function OrdersTable({ role, riderInfo }: OrdersTableProps) {
 
   const [totalPages, setTotalPages] = useState(1);
 
-  /* ----------------------------------
-      MODAL STATES (must be outside tbody)
-  ---------------------------------- */
+  // MODALS
   const [editModal, setEditModal] = useState(false);
   const [editData, setEditData] =
     useState<(OrderData & { id: string }) | null>(null);
@@ -50,17 +58,13 @@ export default function OrdersTable({ role, riderInfo }: OrdersTableProps) {
   const [deleteModal, setDeleteModal] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  /* ===========================
-      1️⃣ TOTAL COUNT
-     =========================== */
+  /* ================= Total Count ================= */
   const getTotalOrdersCount = async () => {
     const snap = await getDocs(collection(db, "orders"));
     setTotalPages(Math.ceil(snap.size / pageSize));
   };
 
-  /* ===========================
-      2️⃣ FETCH ORDERS
-     =========================== */
+  /* ================= Fetch Orders ================= */
   const fetchOrders = async (page: number) => {
     setLoading(true);
 
@@ -89,61 +93,59 @@ export default function OrdersTable({ role, riderInfo }: OrdersTableProps) {
 
     const snap = await getDocs(q);
 
-    const fetchedOrders = snap.docs.map((d) => ({
+    const fetched = snap.docs.map((d) => ({
       ...(d.data() as OrderData),
       id: d.id,
     }));
 
-    setOrders(fetchedOrders);
+    setOrders(fetched);
     setLastDoc(snap.docs[snap.docs.length - 1] || null);
     setLoading(false);
   };
 
-  /* ===========================
-      3️⃣ FIRST LOAD
-     =========================== */
+  /* ================= On First Load ================= */
   useEffect(() => {
     getTotalOrdersCount();
   }, []);
 
-  /* ===========================
-      4️⃣ FETCH ON PAGE CHANGE
-     =========================== */
+  /* ================= When Page Changes ================= */
   useEffect(() => {
     fetchOrders(currentPage);
   }, [currentPage, role]);
 
-  /* ===========================
-      5️⃣ LOADING
-     =========================== */
-  if (loading)
+  if (loading) {
     return (
       <div className="p-6 bg-white shadow rounded-xl">
         <p className="text-gray-600">Loading orders…</p>
       </div>
     );
+  }
 
-  /* ===========================
-      6️⃣ RENDER TABLE
-     =========================== */
+  /* =================== RENDER TABLE =================== */
   return (
-    <div className="p-6 bg-white rounded-xl shadow space-y-4">
-      <table className="w-full border">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="p-2">Order #</th>
-            <th className="p-2">Customer</th>
-            <th className="p-2">Phone</th>
-            <th className="p-2">Pincode</th>
-            <th className="p-2">Product</th>
-            <th className="p-2">Address</th>
-            <th className="p-2">Status</th>
-            <th className="p-2">Delivery</th>
-            <th className="p-2">Actions</th>
-          </tr>
-        </thead>
+    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+      <div className="max-w-full overflow-x-auto">
+        <div className="min-w-[1102px]">
+          <Table>
 
-        <tbody>
+        {/* ---------- TABLE HEADER ---------- */}
+        <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+          <TableRow>
+            <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Order #</TableCell>
+            <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Customer</TableCell>
+            <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Phone</TableCell>
+            <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Pincode</TableCell>
+            <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Product</TableCell>
+            <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Address</TableCell>
+            <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Rider Name</TableCell>
+            <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Status</TableCell>
+            <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Delivery</TableCell>
+            <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Actions</TableCell>
+          </TableRow>
+        </TableHeader>
+
+        {/* ---------- TABLE BODY ---------- */}
+        <TableBody>
           {orders.map((order) => (
             <OrderRow
               key={order.id}
@@ -160,8 +162,8 @@ export default function OrdersTable({ role, riderInfo }: OrdersTableProps) {
               }}
             />
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
 
       <Pagination
         currentPage={currentPage}
@@ -169,9 +171,7 @@ export default function OrdersTable({ role, riderInfo }: OrdersTableProps) {
         onPageChange={(p) => setCurrentPage(p)}
       />
 
-      {/* =======================
-         EDIT MODAL (outside table)
-        ======================= */}
+      {/* ============= EDIT MODAL ============= */}
       {editModal && editData && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-xl w-[450px] space-y-4">
@@ -224,9 +224,7 @@ export default function OrdersTable({ role, riderInfo }: OrdersTableProps) {
         </div>
       )}
 
-      {/* =======================
-         DELETE MODAL
-        ======================= */}
+      {/* ============= DELETE MODAL ============= */}
       {deleteModal && deleteId && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-xl w-[400px] space-y-4">
@@ -256,6 +254,9 @@ export default function OrdersTable({ role, riderInfo }: OrdersTableProps) {
           </div>
         </div>
       )}
+
+        </div>
+      </div>
     </div>
   );
 }

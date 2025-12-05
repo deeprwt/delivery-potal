@@ -41,7 +41,7 @@ export default function SignInForm() {
       if (role === "admin") {
         window.location.href = "/dashboard";
       } else {
-        window.location.href = "/rider/dashboard";
+        window.location.href = "/dashboard";
       }
 
     } catch (error) {

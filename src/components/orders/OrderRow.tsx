@@ -3,22 +3,31 @@
 import React from "react";
 import Badge from "@/components/ui/badge/Badge";
 import { OrderData, assignOrderToRider } from "@/lib/orderService";
+import { TableRow, TableCell } from "../ui/table";
 
-interface OrderRowProps {
-  order: OrderData & { id: string };
-  role: "admin" | "rider";
-  riderInfo: {
-    uid: string;
-    firstName: string;
-    lastName: string;
-    phone?: string;
-  } | null;
-
-  onEdit: (order: OrderData & { id: string }) => void;   // NEW
-  onDelete: (orderId: string) => void;                   // NEW
+export interface RiderInfo {
+  uid: string;
+  firstName: string;
+  lastName: string;
+  phone?: string;
 }
 
-export default function OrderRow({ order, role, riderInfo, onEdit, onDelete }: OrderRowProps) {
+export interface OrderRowProps {
+  order: OrderData & { id: string };
+  role: "admin" | "rider";
+  riderInfo: RiderInfo | null;
+
+  onEdit: (order: OrderData & { id: string }) => void;
+  onDelete: (orderId: string) => void;
+}
+
+export default function OrderRow({
+  order,
+  role,
+  riderInfo,
+  onEdit,
+  onDelete,
+}: OrderRowProps) {
   const acquireOrder = async () => {
     if (!riderInfo) return;
     await assignOrderToRider(order.id, riderInfo);
@@ -26,31 +35,37 @@ export default function OrderRow({ order, role, riderInfo, onEdit, onDelete }: O
   };
 
   return (
-    <tr className="border-b">
-      <td className="p-2">{order.orderNumber}</td>
-      <td className="p-2">{order.customerName}</td>
-      <td className="p-2">{order.customerPhone}</td>
-      <td className="p-2">{order.pincode}</td>
-      <td className="p-2">{order.productName}</td>
-      <td className="p-2">{order.address}</td>
+    <TableRow className="border-b">
+      <TableCell className="p-2">{order.orderNumber}</TableCell>
+      <TableCell className="p-2">{order.customerName}</TableCell>
+      <TableCell className="p-2">{order.customerPhone}</TableCell>
+      <TableCell className="p-2">{order.pincode}</TableCell>
+      <TableCell className="p-2">{order.productName}</TableCell>
+      <TableCell className="p-2">{order.address}</TableCell>
+      <TableCell className="p-2">{order.riderName}</TableCell>
 
-      <td className="p-2">
+      <TableCell className="p-2">
         <Badge color="info">{order.status}</Badge>
-      </td>
+      </TableCell>
 
-      <td className="p-2">
+      <TableCell className="p-2">
         {order.deliveredAt
           ? new Date(order.deliveredAt.seconds * 1000).toLocaleDateString()
           : "—"}
-      </td>
+      </TableCell>
 
-      <td className="p-2 space-x-2">
+      <TableCell className="p-2 space-x-2">
+        {/* Rider Acquire Button */}
         {role === "rider" && order.status === "pending" && (
-          <button onClick={acquireOrder} className="px-4 py-1 bg-green-600 text-white rounded">
+          <button
+            onClick={acquireOrder}
+            className="px-4 py-1 bg-green-600 text-white rounded"
+          >
             Acquire
           </button>
         )}
 
+        {/* Admin Buttons */}
         {role === "admin" && (
           <>
             <button
@@ -68,7 +83,7 @@ export default function OrderRow({ order, role, riderInfo, onEdit, onDelete }: O
             </button>
           </>
         )}
-      </td>
-    </tr>
+      </TableCell>
+    </TableRow>
   );
 }
